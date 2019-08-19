@@ -28,9 +28,8 @@ public class ShipEntity : MonoBehaviour
 
         foreach (Transform block in Blocks)
         {
-            var visibilityData = GetVisibilityDataOfVoxel(block.position);
+            var visibilityData = GetVisibilityDataOfVoxel(block.position, new Vector3(0.25f, 0.25f, 0.25f));
             var centerOffset = block.position - new Vector3(0.25f, 0.25f, 0.25f) / 2;
-            var blockCollider = block.GetComponent<BoxCollider>();
 
             if (visibilityData.Up)
             {
@@ -61,28 +60,52 @@ public class ShipEntity : MonoBehaviour
                 generator.GenerateRightFace(centerOffset, vertices, triangles, uv, squareCount);
                 squareCount++;
             }
-            else
-            {
-                if (blockCollider != null && Math.Abs(visibilityData.RightCollider.size.z - blockCollider.size.z) < 0.001f)
-                {
-                    blockCollider.size += new Vector3(visibilityData.RightCollider.size.x, 0, 0);
-                    blockCollider.center += new Vector3(visibilityData.RightCollider.size.x / 2, 0, 0);
-                    DestroyImmediate(visibilityData.RightCollider);
-                }
-            }
 
             if (visibilityData.Left)
             {
                 generator.GenerateLeftFace(centerOffset, vertices, triangles, uv, squareCount);
                 squareCount++;
             }
-            else
+        }
+
+        var changedCollisions = int.MaxValue;
+        while (changedCollisions > 0)
+        {
+            changedCollisions = 0;
+
+            foreach (Transform block in Blocks)
             {
-                if (blockCollider != null && Math.Abs(visibilityData.LeftCollider.size.z - blockCollider.size.z) < 0.001f)
+                var blockCollider = block.GetComponent<BoxCollider>();
+                if (blockCollider == null)
                 {
-                    visibilityData.LeftCollider.size += new Vector3(blockCollider.size.x, 0, 0);
-                    visibilityData.LeftCollider.center += new Vector3(blockCollider.size.x / 2, 0, 0);
-                    DestroyImmediate(blockCollider);
+                    continue;
+                }
+
+                var rayLength = blockCollider.size / 4;
+                var visibilityData = GetVisibilityDataOfVoxel(block.position, rayLength);
+
+                if (!visibilityData.Forward)
+                {
+                    if (Math.Abs(visibilityData.ForwardCollider.size.x - blockCollider.size.x) < 0.001f)
+                    {
+                        blockCollider.size += new Vector3(0, 0, visibilityData.ForwardCollider.size.z);
+                        blockCollider.center += new Vector3(0, 0, visibilityData.ForwardCollider.size.z / 2);
+                        DestroyImmediate(visibilityData.ForwardCollider);
+
+                        changedCollisions++;
+                    }
+                }
+
+                if (!visibilityData.Right)
+                {
+                    if (Math.Abs(visibilityData.RightCollider.size.z - blockCollider.size.z) < 0.001f)
+                    {
+                        blockCollider.size += new Vector3(visibilityData.RightCollider.size.x, 0, 0);
+                        blockCollider.center += new Vector3(visibilityData.RightCollider.size.x / 2, 0, 0);
+                        DestroyImmediate(visibilityData.RightCollider);
+
+                        changedCollisions++;
+                    }
                 }
             }
         }
@@ -103,22 +126,22 @@ public class ShipEntity : MonoBehaviour
         meshFilter.mesh.RecalculateNormals();
     }
 
-    private VisibilityData GetVisibilityDataOfVoxel(Vector3 position)
+    private VisibilityData GetVisibilityDataOfVoxel(Vector3 position, Vector3 dist)
     {
         var data = new VisibilityData();
-        data.Up = GetVisibilityDataOfVoxel(position, Vector3.up, out data.UpCollider);
-        data.Down = GetVisibilityDataOfVoxel(position, Vector3.down, out data.DownCollider);
-        data.Forward = GetVisibilityDataOfVoxel(position, Vector3.forward, out data.ForwardCollider);
-        data.Back = GetVisibilityDataOfVoxel(position, Vector3.back, out data.BackCollider);
-        data.Right = GetVisibilityDataOfVoxel(position, Vector3.right, out data.RightCollider);
-        data.Left = GetVisibilityDataOfVoxel(position, Vector3.left, out data.LeftCollider);
+        data.Up = GetVisibilityDataOfVoxel(position, Vector3.up, dist.y, out data.UpCollider);
+        data.Down = GetVisibilityDataOfVoxel(position, Vector3.down, dist.y, out data.DownCollider);
+        data.Forward = GetVisibilityDataOfVoxel(position, Vector3.forward, dist.z, out data.ForwardCollider);
+        data.Back = GetVisibilityDataOfVoxel(position, Vector3.back, dist.z, out data.BackCollider);
+        data.Right = GetVisibilityDataOfVoxel(position, Vector3.right, dist.x, out data.RightCollider);
+        data.Left = GetVisibilityDataOfVoxel(position, Vector3.left, dist.x, out data.LeftCollider);
 
         return data;
     }
-    
-    private bool GetVisibilityDataOfVoxel(Vector3 position, Vector3 dir, out BoxCollider hitCollider)
+
+    private bool GetVisibilityDataOfVoxel(Vector3 position, Vector3 dir, float dist, out BoxCollider hitCollider)
     {
-        if (Physics.Raycast(position, dir, out var hit, 0.25f))
+        if (Physics.Raycast(position, dir, out var hit, dist))
         {
             hitCollider = (BoxCollider)hit.collider;
             return !(hitCollider.gameObject.tag == "Block" && hitCollider.gameObject.GetComponent<Renderer>().enabled);
