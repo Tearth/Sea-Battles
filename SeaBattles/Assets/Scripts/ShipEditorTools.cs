@@ -10,9 +10,7 @@ public class ShipEditorTools : MonoBehaviour
     public void RemoveDuplicates()
     {
         var removedDuplicates = 0;
-
-        var children = GetAllBlocks();
-        var groups = children.GroupBy(p => p.transform.position);
+        var groups = GetAllBlocks().GroupBy(p => p.transform.position);
 
         foreach (var group in groups)
         {
@@ -42,8 +40,8 @@ public class ShipEditorTools : MonoBehaviour
 
     public void CreateMirror()
     {
-        var blocksToCopy = Blocks.childCount;
         var copiedBlocks = 0;
+        var blocksToCopy = Blocks.childCount;
 
         foreach (Transform child in Blocks.transform)
         {
