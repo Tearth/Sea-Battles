@@ -72,6 +72,7 @@ public class ShipEntity : MonoBehaviour
             block.GetComponent<Renderer>().enabled = false;
         }
 
+        meshFilter.mesh.Clear();
         meshFilter.mesh.vertices = vertices.ToArray();
         meshFilter.mesh.triangles = triangles.ToArray();
         meshFilter.mesh.uv = uv.ToArray();
