@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 public class ShipEntity : MonoBehaviour
 {
@@ -8,8 +11,13 @@ public class ShipEntity : MonoBehaviour
     public string StaticBlockTag;
     public string DynamicBlockTag;
 
+    private Vector3Int _shipSize;
+    private Vector3 _shipCorner;
+    private bool[,,] _shipMap;
+
     void Start()
     {
+        (_shipSize, _shipCorner) = GetShipSizeAndCorner();
         RegenerateShipMesh();
     }
 
@@ -20,6 +28,8 @@ public class ShipEntity : MonoBehaviour
 
     private void RegenerateShipMesh()
     {
+        _shipMap = new bool[_shipSize.x, _shipSize.y, _shipSize.z];
+
         var generator = new MeshGenerator();
         var vertices = new List<Vector3>();
         var triangles = new List<int>();
@@ -68,6 +78,9 @@ public class ShipEntity : MonoBehaviour
                 generator.GenerateLeftFace(centerOffset, vertices, triangles, uv, squareCount);
                 squareCount++;
             }
+
+            var blockArrayCoords = GetArrayCoordsOfBlock(block.position);
+            _shipMap[blockArrayCoords.x, blockArrayCoords.y, blockArrayCoords.z] = true;
         }
 
         var changedCollisions = int.MaxValue;
@@ -151,5 +164,35 @@ public class ShipEntity : MonoBehaviour
 
         hitCollider = null;
         return true;
+    }
+
+    private (Vector3Int size, Vector3 corner) GetShipSizeAndCorner()
+    {
+        (float min, float max) x = (float.MaxValue, float.MinValue);
+        (float min, float max) y = (float.MaxValue, float.MinValue);
+        (float min, float max) z = (float.MaxValue, float.MinValue);
+
+        foreach (Transform block in Blocks)
+        {
+            x.min = Mathf.Min(x.min, block.position.x);
+            y.min = Mathf.Min(y.min, block.position.y);
+            z.min = Mathf.Min(z.min, block.position.z);
+
+            x.max = Mathf.Max(x.max, block.position.x);
+            y.max = Mathf.Max(y.max, block.position.y);
+            z.max = Mathf.Max(z.max, block.position.z);
+        }
+
+        var xSize = Mathf.RoundToInt((x.max - x.min) * 4);
+        var ySize = Mathf.RoundToInt((y.max - y.min) * 4);
+        var zSize = Mathf.RoundToInt((z.max - z.min) * 4);
+
+        return (new Vector3Int(xSize + 1, ySize + 1, zSize + 1), new Vector3(x.min, y.min, z.min));
+    }
+
+    private Vector3Int GetArrayCoordsOfBlock(Vector3 position)
+    {
+        var offset = (position - _shipCorner) * 4;
+        return new Vector3Int(Mathf.RoundToInt(offset.x), Mathf.RoundToInt(offset.y), Mathf.RoundToInt(offset.z));
     }
 }
