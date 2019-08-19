@@ -5,6 +5,8 @@ using UnityEngine;
 public class ShipEntity : MonoBehaviour
 {
     public Transform Blocks;
+    public string StaticBlockTag;
+    public string DynamicBlockTag;
 
     void Start()
     {
@@ -144,7 +146,7 @@ public class ShipEntity : MonoBehaviour
         if (Physics.Raycast(position, dir, out var hit, dist))
         {
             hitCollider = (BoxCollider)hit.collider;
-            return !(hitCollider.gameObject.tag == "Block" && hitCollider.gameObject.GetComponent<Renderer>().enabled);
+            return !(hitCollider.gameObject.tag == StaticBlockTag && hitCollider.gameObject.GetComponent<Renderer>().enabled);
         }
 
         hitCollider = null;

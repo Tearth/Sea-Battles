@@ -4,7 +4,8 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Block
+  - DynamicBlock
+  - StaticBlock
   layers:
   - Default
   - TransparentFX
