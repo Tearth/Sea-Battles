@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 public class ShipEntity : MonoBehaviour
 {
     public Transform Blocks;
+    public Transform Chunks;
+    public GameObject ChunkPrefab;
     public string StaticBlockTag;
     public string DynamicBlockTag;
+    public int ChunkWidth;
 
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
@@ -18,6 +22,8 @@ public class ShipEntity : MonoBehaviour
     void Start()
     {
         (_shipSize, _shipCorner) = GetShipSizeAndCorner();
+
+        CreateShipArrayMap();
         RegenerateShipMesh();
     }
 
@@ -26,61 +32,21 @@ public class ShipEntity : MonoBehaviour
         
     }
 
-    private void RegenerateShipMesh()
+    private void CreateShipArrayMap()
     {
         _shipMap = new bool[_shipSize.x, _shipSize.y, _shipSize.z];
-
-        var generator = new MeshGenerator();
-        var vertices = new List<Vector3>();
-        var triangles = new List<int>();
-        var uv = new List<Vector2>();
-
-        var meshFilter = GetComponent<MeshFilter>();
-        var squareCount = 0;
-
         foreach (Transform block in Blocks)
         {
-            var visibilityData = GetVisibilityDataOfVoxel(block.position, new Vector3(0.25f, 0.25f, 0.25f));
-            var centerOffset = block.position - new Vector3(0.25f, 0.25f, 0.25f) / 2;
-
-            if (visibilityData.Up)
-            {
-                generator.GenerateTopFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
-            if (visibilityData.Down)
-            {
-                generator.GenerateBottomFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
-            if (visibilityData.Forward)
-            {
-                generator.GenerateFrontFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
-            if (visibilityData.Back)
-            {
-                generator.GenerateBackFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
-            if (visibilityData.Right)
-            {
-                generator.GenerateRightFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
-            if (visibilityData.Left)
-            {
-                generator.GenerateLeftFace(centerOffset, vertices, triangles, uv, squareCount);
-                squareCount++;
-            }
-
             var blockArrayCoords = GetArrayCoordsOfBlock(block.position);
             _shipMap[blockArrayCoords.x, blockArrayCoords.y, blockArrayCoords.z] = true;
+        }
+    }
+
+    private void RegenerateShipMesh()
+    {
+        for (var x = 0; x < _shipSize.x; x += ChunkWidth)
+        {
+            RegenerateChunk(x);
         }
 
         var changedCollisions = int.MaxValue;
@@ -131,6 +97,81 @@ public class ShipEntity : MonoBehaviour
             if (block.GetComponent<BoxCollider>() == null)
             {
                 Destroy(block.gameObject);
+            }
+        }
+    }
+
+    private void RegenerateChunk(int x)
+    {
+        var chunk = Chunks.Find($"Chunk {x}")?.gameObject;
+        if (chunk == null)
+        {
+            chunk = Instantiate(ChunkPrefab, Vector3.zero, Quaternion.identity, Chunks);
+            chunk.name = $"Chunk {x}";
+        }
+
+        var meshFilter = chunk.GetComponent<MeshFilter>();
+        var generator = new MeshGenerator();
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+        var uv = new List<Vector2>();
+        var squareCount = 0;
+        
+        for (var chunkX = x; chunkX < x + ChunkWidth; chunkX++)
+        {
+            if (chunkX >= _shipSize.x)
+            {
+                break;
+            }
+
+            for (var y = 0; y < _shipSize.y; y++)
+            {
+                for (var z = 0; z < _shipSize.z; z++)
+                {
+                    if (!_shipMap[chunkX, y, z])
+                    {
+                        continue;
+                    }
+
+                    var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
+                    var centerOffset = realCoords - new Vector3(0.25f, 0.25f, 0.25f) / 2;
+
+                    if (y == _shipSize.y - 1 || !_shipMap[chunkX, y + 1, z])
+                    {
+                        generator.GenerateTopFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+
+                    if (y == 0 || !_shipMap[chunkX, y - 1, z])
+                    {
+                        generator.GenerateBottomFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+
+                    if (chunkX == _shipSize.x - 1 || !_shipMap[chunkX + 1, y, z])
+                    {
+                        generator.GenerateRightFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+
+                    if (chunkX == 0 || !_shipMap[chunkX - 1, y, z])
+                    {
+                        generator.GenerateLeftFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+
+                    if (z == _shipSize.z - 1 || !_shipMap[chunkX, y, z + 1])
+                    {
+                        generator.GenerateFrontFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+
+                    if (z == 0 || !_shipMap[chunkX, y, z - 1])
+                    {
+                        generator.GenerateBackFace(centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+                    }
+                }
             }
         }
 
@@ -194,5 +235,30 @@ public class ShipEntity : MonoBehaviour
     {
         var offset = (position - _shipCorner) * 4;
         return new Vector3Int(Mathf.RoundToInt(offset.x), Mathf.RoundToInt(offset.y), Mathf.RoundToInt(offset.z));
+    }
+
+    private Vector3 GetRealBlockPositionByArray(Vector3Int arrayCoords)
+    {
+        return (Vector3)arrayCoords / 4 + _shipCorner;
+    }
+
+    public void DeleteVoxel(Vector3 position)
+    {
+        var voxelArrayCoords = GetArrayCoordsOfBlock(position);
+        var targetX = voxelArrayCoords.x - (voxelArrayCoords.x % ChunkWidth);
+
+        _shipMap[voxelArrayCoords.x, voxelArrayCoords.y, voxelArrayCoords.z] = false;
+
+        if (targetX > 0)
+        {
+            RegenerateChunk(targetX - 1);
+        }
+
+        RegenerateChunk(targetX);
+
+        if (targetX < _shipSize.x - 1)
+        {
+            RegenerateChunk(targetX + 1);
+        }
     }
 }
