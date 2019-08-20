@@ -15,6 +15,7 @@ public class ShipEntity : MonoBehaviour
     public string StaticBlockTag;
     public string DynamicBlockTag;
     public int ChunkWidth;
+    public float VoxelSize;
 
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
@@ -75,7 +76,7 @@ public class ShipEntity : MonoBehaviour
         }
 
         var meshFilter = chunk.GetComponent<MeshFilter>();
-        var generator = new MeshGenerator();
+        var generator = new MeshGenerator(VoxelSize);
         var vertices = new List<Vector3>();
         var triangles = new List<int>();
         var uv = new List<Vector2>();
@@ -98,7 +99,7 @@ public class ShipEntity : MonoBehaviour
                     }
 
                     var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
-                    var centerOffset = realCoords - new Vector3(0.25f, 0.25f, 0.25f) / 2;
+                    var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
 
                     if (y == _shipSize.y - 1 || !_shipMap[chunkX, y + 1, z])
                     {
@@ -161,7 +162,7 @@ public class ShipEntity : MonoBehaviour
                     continue;
                 }
 
-                var rayLength = blockCollider.size / 4;
+                var rayLength = blockCollider.size * VoxelSize;
                 var visibilityData = GetVisibilityDataOfVoxel(block.position, rayLength);
 
 
@@ -242,13 +243,13 @@ public class ShipEntity : MonoBehaviour
 
     private Vector3Int GetArrayCoordsOfBlock(Vector3 position)
     {
-        var offset = (position - _shipCorner) * 4;
+        var offset = (position - _shipCorner) / VoxelSize;
         return new Vector3Int(Mathf.RoundToInt(offset.x), Mathf.RoundToInt(offset.y), Mathf.RoundToInt(offset.z));
     }
 
     private Vector3 GetRealBlockPositionByArray(Vector3Int arrayCoords)
     {
-        return (Vector3)arrayCoords / 4 + _shipCorner;
+        return (Vector3)arrayCoords * VoxelSize + _shipCorner;
     }
 
     public void DeleteVoxel(Vector3 position)
