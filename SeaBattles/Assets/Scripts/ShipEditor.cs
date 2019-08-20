@@ -28,5 +28,10 @@ public class ShipEditor : Editor
         {
             script.RemoveMirror();
         }
+
+        if (GUILayout.Button("Apply scale"))
+        {
+            script.ApplyScale();
+        }
     }
 }

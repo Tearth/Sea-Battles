@@ -6,6 +6,7 @@ using Quaternion = UnityEngine.Quaternion;
 public class ShipEditorTools : MonoBehaviour
 {
     public Transform Blocks;
+    public float ScaleToApply;
 
     public void RemoveDuplicates()
     {
@@ -69,6 +70,18 @@ public class ShipEditorTools : MonoBehaviour
         }
 
         Debug.Log($"Removed {removedBlocks} blocks");
+    }
+
+    public void ApplyScale()
+    {
+        var firstBlockScale = Blocks.GetChild(0).transform.localScale;
+        var scaleVector = new Vector3(ScaleToApply / firstBlockScale.x, ScaleToApply / firstBlockScale.y, ScaleToApply / firstBlockScale.z);
+
+        foreach (Transform block in Blocks)
+        {
+            block.localScale = Vector3.Scale(block.localScale, scaleVector);
+            block.localPosition = Vector3.Scale(block.localPosition, scaleVector);
+        }
     }
 
     private List<GameObject> GetAllBlocks()
