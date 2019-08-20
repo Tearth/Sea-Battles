@@ -164,7 +164,7 @@ public class ShipEntity : MonoBehaviour
                 var visibilityData = GetVisibilityDataOfVoxel(block.position, rayLength);
 
 
-                if (!visibilityData.Right)
+                if (!visibilityData.Right && blockCollider.size.x >= blockCollider.size.z)
                 {
                     if (Math.Abs(visibilityData.RightCollider.size.z - blockCollider.size.z) < 0.001f)
                     {
@@ -175,7 +175,7 @@ public class ShipEntity : MonoBehaviour
                         changedCollisions++;
                     }
                 }
-                /*else if (!visibilityData.Forward)
+                else if (!visibilityData.Forward && blockCollider.size.x <= blockCollider.size.z)
                 {
                     if (Math.Abs(visibilityData.ForwardCollider.size.x - blockCollider.size.x) < 0.001f)
                     {
@@ -185,7 +185,7 @@ public class ShipEntity : MonoBehaviour
 
                         changedCollisions++;
                     }
-                }*/
+                }
             }
         }
     }
@@ -270,38 +270,128 @@ public class ShipEntity : MonoBehaviour
         }
     }
 
-    public void DeleteCollider(Vector3 position, BoxCollider collider)
+    public void DeleteCollider(Vector3 position, BoxCollider collider, ColliderType type)
     {
+        // Distance to the center of collider
         var dist = Vector3.Distance(collider.center, position);
         var originalSize = collider.size;
 
-        if (position.x < collider.center.x)
+        // Check if we have long or wide collider
+        switch (type)
         {
-            collider.size = new Vector3(collider.size.x / 2 - dist - 0.5f, collider.size.y, collider.size.z);
-            collider.center = new Vector3(collider.size.x / 2 - 0.5f, collider.center.y, collider.center.z);
-        }
-        else
-        {
-            var diffX = collider.center.x - dist;
+            // Long collider
+            case ColliderType.ForwardBack:
+            {
+                if (position.x < collider.center.x)
+                {
+                    // Before:
+                    //
+                    //    hit    center 
+                    //    \/       \/
+                    // oooooooooooooooooooooooooo
+                    //
+                    // After:
+                    //
+                    // oooo [                   ]
+                    // 
 
-            collider.size = new Vector3(collider.size.x - diffX - 1, collider.size.y, collider.size.z);
-            collider.center = new Vector3(collider.size.x / 2 - 0.5f, collider.center.y, collider.center.z);
-        }
+                    collider.size = new Vector3(collider.size.x / 2 - dist - 0.5f, collider.size.y, collider.size.z);
+                    collider.center = new Vector3(collider.size.x / 2 - 0.5f, collider.center.y, collider.center.z);
+                }
+                else
+                {
+                    //           center    hit
+                    //             \/      \/
+                    // oooooooooooooooooooooooooo
+                    //
+                    // After:
+                    //
+                    // ooooooooooooo [          ]
+                    // 
 
-        var sizeOfNewCollider = originalSize - new Vector3(collider.size.x + 1, 0, 0);
-        if (sizeOfNewCollider.x > 0)
-        {
-            var rightGameObject = Instantiate(collider.gameObject, Vector3.zero, Quaternion.identity, Blocks);
-            var rightCollider = rightGameObject.GetComponent<BoxCollider>();
+                    var diff = collider.center.x - dist;
 
-            rightCollider.transform.position = collider.transform.TransformPoint(position + new Vector3(1, 0, 0));
-            rightCollider.size = sizeOfNewCollider;
-            rightCollider.center = new Vector3(rightCollider.size.x / 2 - 0.5f, 0, 0);
-        }
+                    collider.size = new Vector3(collider.size.x - diff - 1, collider.size.y, collider.size.z);
+                    collider.center = new Vector3(collider.size.x / 2 - 0.5f, collider.center.y, collider.center.z);
+                }
 
-        if (collider.size.x <= 0)
-        {
-            Destroy(collider.gameObject);
+                // Create new collider in the blank space (on the right)
+                var sizeOfNewCollider = originalSize - new Vector3(collider.size.x + 1, 0, 0);
+                if (sizeOfNewCollider.x > 0)
+                {
+                    var rightGameObject = Instantiate(collider.gameObject, Vector3.zero, Quaternion.identity, Blocks);
+                    var rightCollider = rightGameObject.GetComponent<BoxCollider>();
+
+                    rightCollider.transform.position = collider.transform.TransformPoint(position + new Vector3(1, 0, 0));
+                    rightCollider.size = sizeOfNewCollider;
+                    rightCollider.center = new Vector3(rightCollider.size.x / 2 - 0.5f, 0, 0);
+                }
+
+                // If left collider has length equal to zero, remove it
+                if (collider.size.x <= 0)
+                {
+                    Destroy(collider.gameObject);
+                }
+
+                break;
+            }
+
+            // Wide collider
+            case ColliderType.RightLeft:
+            {
+                if (position.z < collider.center.z)
+                {
+                    // Before:
+                    //
+                    //    hit    center 
+                    //    \/       \/
+                    // oooooooooooooooooooooooooo
+                    //
+                    // After:
+                    //
+                    // oooo [                   ]
+                    // 
+
+                    collider.size = new Vector3(collider.size.x, collider.size.y, collider.size.z / 2 - dist - 0.5f);
+                    collider.center = new Vector3(collider.center.x, collider.center.y, collider.size.z / 2 - 0.5f);
+                }
+                else
+                {
+                    //           center    hit
+                    //             \/      \/
+                    // oooooooooooooooooooooooooo
+                    //
+                    // After:
+                    //
+                    // ooooooooooooo [          ]
+                    // 
+
+                    var diff = collider.center.z - dist;
+
+                    collider.size = new Vector3(collider.size.x, collider.size.y, collider.size.z - diff - 1);
+                    collider.center = new Vector3(collider.center.x, collider.center.y, collider.size.z / 2 - 0.5f);
+                }
+
+                // Create new collider in the blank space (on the right)
+                var sizeOfNewCollider = originalSize - new Vector3(0, 0, collider.size.z + 1);
+                if (sizeOfNewCollider.z > 0)
+                {
+                    var rightGameObject = Instantiate(collider.gameObject, Vector3.zero, Quaternion.identity, Blocks);
+                    var rightCollider = rightGameObject.GetComponent<BoxCollider>();
+
+                    rightCollider.transform.position = collider.transform.TransformPoint(position + new Vector3(0, 0, 1));
+                    rightCollider.size = sizeOfNewCollider;
+                    rightCollider.center = new Vector3(0, 0, rightCollider.size.z / 2 - 0.5f);
+                }
+
+                // If left collider has length equal to zero, remove it
+                if (collider.size.z <= 0)
+                {
+                    Destroy(collider.gameObject);
+                }
+
+                break;
+            }
         }
     }
 }
