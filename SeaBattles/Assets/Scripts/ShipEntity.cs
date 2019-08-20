@@ -11,6 +11,7 @@ public class ShipEntity : MonoBehaviour
     public Transform Blocks;
     public Transform Chunks;
     public GameObject ChunkPrefab;
+    public GameObject DynamicBlockPrefab;
     public string StaticBlockTag;
     public string DynamicBlockTag;
     public int ChunkWidth;
@@ -270,7 +271,7 @@ public class ShipEntity : MonoBehaviour
         }
     }
 
-    public void DeleteCollider(Vector3 position, BoxCollider collider, ColliderType type)
+    public void DeleteCollider(Vector3 position, BoxCollider collider, Collision collision, ColliderType type)
     {
         // Distance to the center of collider
         var dist = Vector3.Distance(collider.center, position);
@@ -393,5 +394,8 @@ public class ShipEntity : MonoBehaviour
                 break;
             }
         }
+
+        var dynamicBlock = Instantiate(DynamicBlockPrefab, collider.transform.TransformPoint(position), Quaternion.identity, Blocks);
+        dynamicBlock.GetComponent<Rigidbody>().velocity = collision.relativeVelocity;
     }
 }

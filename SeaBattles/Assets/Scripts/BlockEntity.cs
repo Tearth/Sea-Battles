@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Net;
+using UnityEngine;
 
 public class BlockEntity : MonoBehaviour
 {
@@ -7,6 +8,11 @@ public class BlockEntity : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         var contact = collision.contacts[0];
+        if (contact.otherCollider.gameObject.tag == "DynamicBlock")
+        {
+            return;
+        }
+
         var boxCollider = (BoxCollider)contact.thisCollider;
         var colPoint = transform.InverseTransformPoint(contact.point);
         var colliderType = boxCollider.size.x > boxCollider.size.z ? ColliderType.ForwardBack : ColliderType.RightLeft;
@@ -34,6 +40,6 @@ public class BlockEntity : MonoBehaviour
         
 
         ShipEntity.DeleteVoxel(transform.TransformPoint(colPoint));
-        ShipEntity.DeleteCollider(colPoint, (BoxCollider)contact.thisCollider, colliderType);
+        ShipEntity.DeleteCollider(colPoint, (BoxCollider)contact.thisCollider, collision, colliderType);
     }
 }
