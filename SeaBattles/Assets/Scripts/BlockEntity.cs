@@ -6,23 +6,15 @@ public class BlockEntity : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        var colPoint = collision.contacts[0].point;
+        var contact = collision.contacts[0];
+        var boxCollider = (BoxCollider)contact.thisCollider;
+        var colPoint = transform.InverseTransformPoint(contact.point);
 
-        if (collision.transform.position.x > transform.position.x)
-            colPoint -= new Vector3(0.1f, 0, 0);
-        else
-            colPoint += new Vector3(0.1f, 0, 0);
+        var roundedX = Mathf.Floor(colPoint.x + 0.5f);
+        var clampedX = Mathf.Clamp(roundedX, 0, boxCollider.size.x - 1);
+        colPoint = new Vector3(clampedX, 0, 0);
 
-        if (collision.transform.position.y > transform.position.y)
-            colPoint -= new Vector3(0, 0.1f, 0);
-        else
-            colPoint += new Vector3(0, 0.1f, 0);
-
-        if (collision.transform.position.z > transform.position.z)
-            colPoint -= new Vector3(0, 0, 0.1f);
-        else
-            colPoint += new Vector3(0, 0, 0.1f);
-
-        ShipEntity.DeleteVoxel(colPoint);
+        ShipEntity.DeleteVoxel(transform.TransformPoint(colPoint));
+        ShipEntity.DeleteCollider(colPoint, (BoxCollider)contact.thisCollider);
     }
 }

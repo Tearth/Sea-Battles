@@ -49,47 +49,7 @@ public class ShipEntity : MonoBehaviour
             RegenerateChunk(x);
         }
 
-        var changedCollisions = int.MaxValue;
-        while (changedCollisions > 0)
-        {
-            changedCollisions = 0;
-
-            foreach (Transform block in Blocks)
-            {
-                var blockCollider = block.GetComponent<BoxCollider>();
-                if (blockCollider == null)
-                {
-                    continue;
-                }
-
-                var rayLength = blockCollider.size / 4;
-                var visibilityData = GetVisibilityDataOfVoxel(block.position, rayLength);
-
-                if (!visibilityData.Forward)
-                {
-                    if (Math.Abs(visibilityData.ForwardCollider.size.x - blockCollider.size.x) < 0.001f)
-                    {
-                        blockCollider.size += new Vector3(0, 0, visibilityData.ForwardCollider.size.z);
-                        blockCollider.center += new Vector3(0, 0, visibilityData.ForwardCollider.size.z / 2);
-                        DestroyImmediate(visibilityData.ForwardCollider);
-
-                        changedCollisions++;
-                    }
-                }
-
-                if (!visibilityData.Right)
-                {
-                    if (Math.Abs(visibilityData.RightCollider.size.z - blockCollider.size.z) < 0.001f)
-                    {
-                        blockCollider.size += new Vector3(visibilityData.RightCollider.size.x, 0, 0);
-                        blockCollider.center += new Vector3(visibilityData.RightCollider.size.x / 2, 0, 0);
-                        DestroyImmediate(visibilityData.RightCollider);
-
-                        changedCollisions++;
-                    }
-                }
-            }
-        }
+        SimplifyColliders();
 
         foreach (Transform block in Blocks)
         {
@@ -98,6 +58,9 @@ public class ShipEntity : MonoBehaviour
             {
                 Destroy(block.gameObject);
             }
+
+            Destroy(block.GetComponent<MeshFilter>());
+            Destroy(block.GetComponent<MeshRenderer>());
         }
     }
 
@@ -182,6 +145,51 @@ public class ShipEntity : MonoBehaviour
         meshFilter.mesh.RecalculateNormals();
     }
 
+    private void SimplifyColliders()
+    {
+        var changedCollisions = int.MaxValue;
+        while (changedCollisions > 0)
+        {
+            changedCollisions = 0;
+
+            foreach (Transform block in Blocks)
+            {
+                var blockCollider = block.GetComponent<BoxCollider>();
+                if (blockCollider == null)
+                {
+                    continue;
+                }
+
+                var rayLength = blockCollider.size / 4;
+                var visibilityData = GetVisibilityDataOfVoxel(block.position, rayLength);
+
+                /*if (!visibilityData.Forward)
+                {
+                    if (Math.Abs(visibilityData.ForwardCollider.size.x - blockCollider.size.x) < 0.001f)
+                    {
+                        blockCollider.size += new Vector3(0, 0, visibilityData.ForwardCollider.size.z);
+                        blockCollider.center += new Vector3(0, 0, visibilityData.ForwardCollider.size.z / 2);
+                        DestroyImmediate(visibilityData.ForwardCollider);
+
+                        changedCollisions++;
+                    }
+                }*/
+
+                if (!visibilityData.Right)
+                {
+                    if (Math.Abs(visibilityData.RightCollider.size.z - blockCollider.size.z) < 0.001f)
+                    {
+                        blockCollider.size += new Vector3(visibilityData.RightCollider.size.x, 0, 0);
+                        blockCollider.center += new Vector3(visibilityData.RightCollider.size.x / 2, 0, 0);
+                        DestroyImmediate(visibilityData.RightCollider);
+
+                        changedCollisions++;
+                    }
+                }
+            }
+        }
+    }
+
     private VisibilityData GetVisibilityDataOfVoxel(Vector3 position, Vector3 dist)
     {
         var data = new VisibilityData();
@@ -259,6 +267,27 @@ public class ShipEntity : MonoBehaviour
         if (targetX < _shipSize.x - 1)
         {
             RegenerateChunk(targetX + 1);
+        }
+    }
+
+    public void DeleteCollider(Vector3 position, BoxCollider collider)
+    {
+        var dist = Vector3.Distance(collider.center, position);
+        var diffX = collider.center.x - dist + 1;
+        collider.size -= new Vector3(diffX, 0, 0);
+
+        if (position.x < collider.center.x)
+        {
+            collider.center += new Vector3(diffX / 2, 0, 0);
+        }
+        else
+        {
+            collider.center -= new Vector3(diffX / 2, 0, 0);
+        }
+
+        if (collider.size.x <= 0)
+        {
+            Destroy(collider.gameObject);
         }
     }
 }
