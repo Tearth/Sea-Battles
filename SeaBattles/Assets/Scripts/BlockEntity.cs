@@ -38,7 +38,6 @@ public class BlockEntity : MonoBehaviour
             }
         }
         
-
         ShipEntity.DeleteVoxel(transform.TransformPoint(colPoint));
         ShipEntity.DeleteCollider(colPoint, (BoxCollider)contact.thisCollider, collision, colliderType);
     }

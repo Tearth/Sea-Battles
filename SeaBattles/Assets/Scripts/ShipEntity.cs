@@ -11,11 +11,19 @@ public class ShipEntity : MonoBehaviour
     public Transform Blocks;
     public Transform Chunks;
     public Transform Cannons;
+    public Transform Keel;
+    public Rigidbody ShipRigidbody;
     public GameObject ChunkPrefab;
     public GameObject DynamicBlockPrefab;
     public LayerMask StaticBlocksLayer;
     public int ChunkWidth;
     public float VoxelSize;
+    public float WavesForce;
+    public float WavesFrequency;
+    public float StabilizationForce;
+    public float BuoyancyForce;
+    public float SpeedAffectRatio;
+    public float SpeedWavesFrequency;
 
     public int CannonsCount;
     public int CrewCount;
@@ -23,6 +31,9 @@ public class ShipEntity : MonoBehaviour
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
     private bool[,,] _shipMap;
+
+    private float _wavesSwingAngle;
+    private float _speedSwingAngle;
 
     void Start()
     {
@@ -36,6 +47,37 @@ public class ShipEntity : MonoBehaviour
     void Update()
     {
         
+    }
+
+    void FixedUpdate()
+    {
+        var speedForce = ShipRigidbody.velocity.sqrMagnitude * SpeedAffectRatio;
+
+        // Add buoyancy force (more submerged = more force)
+        if (Keel.position.y < 0)
+        {
+            ShipRigidbody.AddForce(0, BuoyancyForce * Mathf.Abs(Keel.position.y), 0, ForceMode.Acceleration);
+        }
+
+        // Add swing (right-left) force due to waves
+        var torqueAngle = Mathf.Sin(_wavesSwingAngle);
+        var torqueAngleSign = Mathf.Sign(torqueAngle);
+
+        ShipRigidbody.AddTorque(WavesForce * torqueAngle + torqueAngleSign * speedForce, 0, 0, ForceMode.Acceleration);
+        _wavesSwingAngle = (_wavesSwingAngle + WavesFrequency) % (2 * Mathf.PI);
+
+        // Add swing (frond-back) force due to speed
+        var speedAngle = Mathf.Sin(_speedSwingAngle);
+        var speedAngleSign = Mathf.Sign(speedAngle);
+
+        ShipRigidbody.AddTorque(0, 0, speedAngleSign * torqueAngle * speedForce, ForceMode.Acceleration);
+        _speedSwingAngle = (_speedSwingAngle + SpeedWavesFrequency) % (2 * Mathf.PI);
+
+        // Stabilize ship's swing
+        var currentRotation = ShipRigidbody.rotation.ToVector3();
+        var forceToApply = currentRotation * -StabilizationForce;
+
+        ShipRigidbody.AddTorque(forceToApply.x, 0, forceToApply.z, ForceMode.Acceleration);
     }
 
     private void CreateShipArrayMap()
