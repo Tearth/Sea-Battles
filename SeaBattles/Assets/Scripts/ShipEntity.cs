@@ -12,8 +12,7 @@ public class ShipEntity : MonoBehaviour
     public Transform Chunks;
     public GameObject ChunkPrefab;
     public GameObject DynamicBlockPrefab;
-    public string StaticBlockTag;
-    public string DynamicBlockTag;
+    public LayerMask StaticBlocksLayer;
     public int ChunkWidth;
     public float VoxelSize;
 
@@ -207,10 +206,10 @@ public class ShipEntity : MonoBehaviour
 
     private bool GetVisibilityDataOfVoxel(Vector3 position, Vector3 dir, float dist, out BoxCollider hitCollider)
     {
-        if (Physics.Raycast(position, dir, out var hit, dist))
+        if (Physics.Raycast(position, dir, out var hit, dist, StaticBlocksLayer.value))
         {
             hitCollider = (BoxCollider)hit.collider;
-            return !(hitCollider.gameObject.tag == StaticBlockTag && hitCollider.gameObject.GetComponent<Renderer>().enabled);
+            return !(hitCollider.gameObject.GetComponent<Renderer>().enabled);
         }
 
         hitCollider = null;
