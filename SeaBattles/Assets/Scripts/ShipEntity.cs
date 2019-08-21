@@ -314,21 +314,23 @@ public class ShipEntity : MonoBehaviour
 
     public void DeleteVoxel(Vector3 position)
     {
-        var voxelArrayCoords = GetArrayCoordsOfBlock(position);
+        var locPoint = transform.InverseTransformPoint(position);
+
+        var voxelArrayCoords = GetArrayCoordsOfBlock(locPoint);
         var targetX = voxelArrayCoords.x - (voxelArrayCoords.x % ChunkWidth);
 
         _shipMap[voxelArrayCoords.x, voxelArrayCoords.y, voxelArrayCoords.z] = false;
 
-        if (targetX > 0)
+        if (targetX > ChunkWidth - 1)
         {
-            RegenerateChunk(targetX - 1);
+            RegenerateChunk(targetX - ChunkWidth);
         }
 
         RegenerateChunk(targetX);
 
-        if (targetX < _shipSize.x - 1)
+        if (targetX < _shipSize.x - ChunkWidth)
         {
-            RegenerateChunk(targetX + 1);
+            RegenerateChunk(targetX + ChunkWidth);
         }
     }
 
