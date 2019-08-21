@@ -5,13 +5,13 @@ using Quaternion = UnityEngine.Quaternion;
 
 public class ShipEditorTools : MonoBehaviour
 {
-    public Transform Blocks;
+    public List<MirrorableItem> MirrorableItems;
     public float ScaleToApply;
 
     public void RemoveDuplicates()
     {
         var removedDuplicates = 0;
-        var groups = GetAllBlocks().GroupBy(p => p.transform.position);
+        var groups = GetAllElements().GroupBy(p => p.transform.position);
 
         foreach (var group in groups)
         {
@@ -24,42 +24,45 @@ public class ShipEditorTools : MonoBehaviour
                 removedDuplicates++;
             }
         }
-
-        Debug.Log($"Removed duplicates: {removedDuplicates}");
     }
 
     public void BeautifyNames()
     {
-        var blockId = 0;
-        foreach (Transform child in Blocks.transform)
+        foreach (var mirrorableItem in MirrorableItems)
         {
-            child.gameObject.name = $"Block {blockId++}";
+            var id = 0;
+            foreach (Transform child in mirrorableItem.Transform)
+            {
+                child.gameObject.name = $"{mirrorableItem.Name} {id++}";
+            }
         }
-
-        Debug.Log($"Beautified {blockId} blocks");
     }
 
     public void CreateMirror()
     {
-        var copiedBlocks = 0;
-        var blocksToCopy = Blocks.childCount;
-
-        foreach (Transform child in Blocks.transform)
+        foreach (var mirrorableItem in MirrorableItems)
         {
-            Instantiate(child.gameObject, Vector3.Scale(child.position, new Vector3(1, 1, -1)), Quaternion.identity, Blocks);
+            var copiedBlocks = 0;
+            var blocksToCopy = mirrorableItem.Transform.childCount;
 
-            if (copiedBlocks++ >= blocksToCopy)
+            foreach (Transform child in mirrorableItem.Transform)
             {
-                break;
+                Instantiate(child.gameObject, Vector3.Scale(child.position, new Vector3(1, 1, -1)), Quaternion.identity, mirrorableItem.Transform);
+
+                if (copiedBlocks++ >= blocksToCopy)
+                {
+                    break;
+                }
             }
         }
 
-        Debug.Log($"Created new {copiedBlocks} blocks");
+        RemoveDuplicates();
+        BeautifyNames();
     }
 
     public void RemoveMirror()
     {
-        var children = GetAllBlocks();
+        var children = GetAllElements();
         var removedBlocks = 0;
         var blocksToRemove = children.Where(p => p.transform.position.z < 0).ToList();
 
@@ -69,27 +72,34 @@ public class ShipEditorTools : MonoBehaviour
             removedBlocks++;
         }
 
-        Debug.Log($"Removed {removedBlocks} blocks");
+        RemoveDuplicates();
+        BeautifyNames();
     }
 
     public void ApplyScale()
     {
-        var firstBlockScale = Blocks.GetChild(0).transform.localScale;
-        var scaleVector = new Vector3(ScaleToApply / firstBlockScale.x, ScaleToApply / firstBlockScale.y, ScaleToApply / firstBlockScale.z);
-
-        foreach (Transform block in Blocks)
+        foreach (var mirrorableItem in MirrorableItems)
         {
-            block.localScale = Vector3.Scale(block.localScale, scaleVector);
-            block.localPosition = Vector3.Scale(block.localPosition, scaleVector);
+            var firstBlockScale = mirrorableItem.Transform.GetChild(0).transform.localScale;
+            var scaleVector = new Vector3(ScaleToApply / firstBlockScale.x, ScaleToApply / firstBlockScale.y, ScaleToApply / firstBlockScale.z);
+
+            foreach (Transform child in mirrorableItem.Transform)
+            {
+                child.localScale = Vector3.Scale(child.localScale, scaleVector);
+                child.localPosition = Vector3.Scale(child.localPosition, scaleVector);
+            }
         }
     }
 
-    private List<GameObject> GetAllBlocks()
+    private List<GameObject> GetAllElements()
     {
         var children = new List<GameObject>();
-        foreach (Transform child in Blocks)
+        foreach (var mirrorableItem in MirrorableItems)
         {
-            children.Add(child.gameObject);
+            foreach (Transform child in mirrorableItem.Transform)
+            {
+                children.Add(child.gameObject);
+            }
         }
 
         return children;
