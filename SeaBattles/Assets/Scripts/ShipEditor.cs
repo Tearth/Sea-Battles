@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(ShipEditorTools))]
 public class ShipEditor : Editor
 {
@@ -8,7 +9,7 @@ public class ShipEditor : Editor
     {
         DrawDefaultInspector();
 
-        ShipEditorTools script = (ShipEditorTools)target;
+        ShipEditorTools script = (ShipEditorTools) target;
         if (GUILayout.Button("Remove duplicates"))
         {
             script.RemoveDuplicates();
@@ -35,3 +36,4 @@ public class ShipEditor : Editor
         }
     }
 }
+#endif
