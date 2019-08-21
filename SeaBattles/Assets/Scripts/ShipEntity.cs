@@ -46,7 +46,13 @@ public class ShipEntity : MonoBehaviour
 
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            foreach (Transform cannon in Cannons)
+            {
+                cannon.GetComponent<CannonEntity>().Shoot();
+            }
+        }
     }
 
     void FixedUpdate()

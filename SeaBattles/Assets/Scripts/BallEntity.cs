@@ -2,8 +2,13 @@
 
 public class BallEntity : MonoBehaviour
 {
-    void Start()
+    public int MaxDepth;
+
+    void Update()
     {
-        GetComponent<Rigidbody>().AddForce(0, 0, 600, ForceMode.Acceleration);
+        if (transform.position.y < MaxDepth)
+        {
+            Destroy(gameObject);
+        }
     }
 }
