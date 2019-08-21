@@ -10,11 +10,15 @@ public class ShipEntity : MonoBehaviour
 {
     public Transform Blocks;
     public Transform Chunks;
+    public Transform Cannons;
     public GameObject ChunkPrefab;
     public GameObject DynamicBlockPrefab;
     public LayerMask StaticBlocksLayer;
     public int ChunkWidth;
     public float VoxelSize;
+
+    public int CannonsCount;
+    public int CrewCount;
 
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
@@ -26,6 +30,7 @@ public class ShipEntity : MonoBehaviour
 
         CreateShipArrayMap();
         RegenerateShipMesh();
+        CalculateVariables();
     }
 
     void Update()
@@ -62,6 +67,20 @@ public class ShipEntity : MonoBehaviour
 
             Destroy(block.GetComponent<MeshFilter>());
             Destroy(block.GetComponent<MeshRenderer>());
+        }
+    }
+
+    private void CalculateVariables()
+    {
+        CannonsCount = 0;
+        CrewCount = 0;
+
+        foreach (Transform cannon in Cannons)
+        {
+            var cannonEntity = cannon.GetComponent<CannonEntity>();
+
+            CannonsCount++;
+            CrewCount += cannonEntity.CrewCount;
         }
     }
 
