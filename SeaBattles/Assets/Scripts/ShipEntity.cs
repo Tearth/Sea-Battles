@@ -234,9 +234,9 @@ public class ShipEntity : MonoBehaviour
             z.max = Mathf.Max(z.max, block.position.z);
         }
 
-        var xSize = Mathf.RoundToInt((x.max - x.min) * 4);
-        var ySize = Mathf.RoundToInt((y.max - y.min) * 4);
-        var zSize = Mathf.RoundToInt((z.max - z.min) * 4);
+        var xSize = Mathf.RoundToInt((x.max - x.min) * VoxelSize);
+        var ySize = Mathf.RoundToInt((y.max - y.min) * VoxelSize);
+        var zSize = Mathf.RoundToInt((z.max - z.min) * VoxelSize);
 
         return (new Vector3Int(xSize + 1, ySize + 1, zSize + 1), new Vector3(x.min, y.min, z.min));
     }
