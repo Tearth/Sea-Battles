@@ -14,6 +14,9 @@ public class CameraEntity : MonoBehaviour
     public float RotationLerpSpeed;
     public float ZoomSpeed;
 
+    public float MinHeight;
+    public float MaxHeight;
+
     private Vector3 _lastMousePosition;
     private Vector3 _deltaMousePosition;
 
@@ -47,7 +50,13 @@ public class CameraEntity : MonoBehaviour
 
         if (Math.Abs(Input.mouseScrollDelta.y) > 0.001f)
         {
-            Destination.Translate(Mathf.Sign(Input.mouseScrollDelta.y) * new Vector3(0, 0, ZoomSpeed) * Time.deltaTime, Space.Self);
+            var deltaSign = (int)Mathf.Sign(Input.mouseScrollDelta.y);
+
+            if(deltaSign == 1 && Destination.position.y > MinHeight ||
+               deltaSign == -1 && Destination.position.y < MaxHeight)
+            {
+                Destination.Translate(deltaSign * new Vector3(0, 0, ZoomSpeed) * Time.deltaTime, Space.Self);
+            }
         }
 
         if (Input.GetMouseButton(1))
@@ -55,7 +64,7 @@ public class CameraEntity : MonoBehaviour
             Destination.transform.RotateAround(Target.position, new Vector3(0, 1, 0), Input.GetAxis("Mouse X") * RotationSpeed * Time.deltaTime);
         }
 
-        Destination.transform.LookAt(Target);
+        Destination.LookAt(Target);
         transform.position = Vector3.Lerp(transform.position, Destination.position, MoveLerpSpeed * Time.deltaTime);
         transform.rotation = Quaternion.Lerp(transform.rotation, Destination.rotation, RotationLerpSpeed * Time.deltaTime);
     }
