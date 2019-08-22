@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public class CameraEntity : MonoBehaviour
@@ -16,15 +17,6 @@ public class CameraEntity : MonoBehaviour
 
     public float MinHeight;
     public float MaxHeight;
-
-    private Vector3 _lastMousePosition;
-    private Vector3 _deltaMousePosition;
-
-    void Start()
-    {
-        _lastMousePosition = Input.mousePosition;
-        _deltaMousePosition = Vector3.zero;
-    }
 
     void Update()
     {
@@ -51,9 +43,7 @@ public class CameraEntity : MonoBehaviour
         if (Math.Abs(Input.mouseScrollDelta.y) > 0.001f)
         {
             var deltaSign = (int)Mathf.Sign(Input.mouseScrollDelta.y);
-
-            if(deltaSign == 1 && Destination.position.y > MinHeight ||
-               deltaSign == -1 && Destination.position.y < MaxHeight)
+            if(deltaSign == 1 && Destination.position.y > MinHeight || deltaSign == -1 && Destination.position.y < MaxHeight)
             {
                 Destination.Translate(deltaSign * new Vector3(0, 0, ZoomSpeed) * Time.deltaTime, Space.Self);
             }
@@ -62,6 +52,11 @@ public class CameraEntity : MonoBehaviour
         if (Input.GetMouseButton(1))
         {
             Destination.transform.RotateAround(Target.position, new Vector3(0, 1, 0), Input.GetAxis("Mouse X") * RotationSpeed * Time.deltaTime);
+
+            if (Input.GetAxis("Mouse Y") < 0 || Destination.position.y > MinHeight)
+            {
+                Destination.transform.RotateAround(Target.position, Destination.right, -Input.GetAxis("Mouse Y") * RotationSpeed * Time.deltaTime);
+            }
         }
 
         Destination.LookAt(Target);
