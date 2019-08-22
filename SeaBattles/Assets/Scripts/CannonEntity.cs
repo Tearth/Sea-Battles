@@ -16,7 +16,7 @@ public class CannonEntity : MonoBehaviour
 
     void Start()
     {
-        Shoot();
+        
     }
 
     void Update()

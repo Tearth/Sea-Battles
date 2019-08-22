@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
 
 public class CameraEntity : MonoBehaviour
@@ -15,29 +12,37 @@ public class CameraEntity : MonoBehaviour
     public float RotationLerpSpeed;
     public float ZoomSpeed;
 
+    public float ExtraAcceleration;
+    public float ExtraReduction;
+
     public float MinHeight;
     public float MaxHeight;
 
     void Update()
     {
+        var speedMultiplier = 
+            Input.GetKey(KeyCode.LeftShift) ? ExtraAcceleration :
+            Input.GetKey(KeyCode.LeftControl) ? ExtraReduction :
+            1;
+
         if (Input.GetKey(KeyCode.W))
         {
-            Target.position += Vector3.Scale(Destination.forward, new Vector3(1, 0, 1)) * MoveSpeed * Time.deltaTime;
+            Target.position += Vector3.Scale(Destination.forward, new Vector3(1, 0, 1)) * MoveSpeed * speedMultiplier * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.S))
         {
-            Target.position -= Vector3.Scale(Destination.forward, new Vector3(1, 0, 1)) * MoveSpeed * Time.deltaTime;
+            Target.position -= Vector3.Scale(Destination.forward, new Vector3(1, 0, 1)) * MoveSpeed * speedMultiplier * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            Target.position -= Vector3.Scale(Destination.right, new Vector3(1, 0, 1)) * MoveSpeed * Time.deltaTime;
+            Target.position -= Vector3.Scale(Destination.right, new Vector3(1, 0, 1)) * MoveSpeed * speedMultiplier * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.D))
         {
-            Target.position += Vector3.Scale(Destination.right, new Vector3(1, 0, 1)) * MoveSpeed * Time.deltaTime;
+            Target.position += Vector3.Scale(Destination.right, new Vector3(1, 0, 1)) * MoveSpeed * speedMultiplier * Time.deltaTime;
         }
 
         if (Math.Abs(Input.mouseScrollDelta.y) > 0.001f)
@@ -57,6 +62,11 @@ public class CameraEntity : MonoBehaviour
             {
                 Destination.transform.RotateAround(Target.position, Destination.right, -Input.GetAxis("Mouse Y") * RotationSpeed * Time.deltaTime);
             }
+        }
+
+        if (Destination.position.y < MinHeight)
+        {
+            Destination.position = new Vector3(Destination.position.x, MinHeight, Destination.position.z);
         }
 
         Destination.LookAt(Target);
