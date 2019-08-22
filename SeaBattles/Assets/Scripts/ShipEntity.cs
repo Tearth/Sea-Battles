@@ -21,9 +21,13 @@ public class ShipEntity : MonoBehaviour
     public float WavesForce;
     public float WavesFrequency;
     public float StabilizationForce;
+    public float MaxStabilizationForce;
     public float BuoyancyForce;
     public float SpeedAffectRatio;
     public float SpeedWavesFrequency;
+    public float MoveForwardForce;
+    public float TurnForce;
+    public float TurnSwingForce;
 
     public int CannonsCount;
     public int CrewCount;
@@ -69,21 +73,25 @@ public class ShipEntity : MonoBehaviour
         var torqueAngle = Mathf.Sin(_wavesSwingAngle);
         var torqueAngleSign = Mathf.Sign(torqueAngle);
 
-        ShipRigidbody.AddTorque(WavesForce * torqueAngle + torqueAngleSign * speedForce, 0, 0, ForceMode.Acceleration);
+        //ShipRigidbody.AddRelativeTorque(WavesForce * torqueAngle + torqueAngleSign * speedForce, 0, 0, ForceMode.Acceleration);
         _wavesSwingAngle = (_wavesSwingAngle + WavesFrequency) % (2 * Mathf.PI);
 
         // Add swing (frond-back) force due to speed
         var speedAngle = Mathf.Sin(_speedSwingAngle);
         var speedAngleSign = Mathf.Sign(speedAngle);
 
-        ShipRigidbody.AddTorque(0, 0, speedAngleSign * torqueAngle * speedForce, ForceMode.Acceleration);
+       // ShipRigidbody.AddRelativeTorque(0, 0, speedAngleSign * torqueAngle * speedForce, ForceMode.Acceleration);
         _speedSwingAngle = (_speedSwingAngle + SpeedWavesFrequency) % (2 * Mathf.PI);
 
         // Stabilize ship's swing
-        var currentRotation = ShipRigidbody.rotation.ToVector3();
-        var forceToApply = currentRotation * -StabilizationForce;
+        ShipRigidbody.AddRelativeTorque(
+            Mathf.DeltaAngle(transform.eulerAngles.x, 0) * StabilizationForce, 
+            0,
+            Mathf.DeltaAngle(transform.eulerAngles.z, 0) * StabilizationForce, 
+            ForceMode.Acceleration);
 
-        ShipRigidbody.AddTorque(forceToApply.x, 0, forceToApply.z, ForceMode.Acceleration);
+        //MoveForward();
+        TurnLeft();
     }
 
     private void CreateShipArrayMap()
@@ -466,5 +474,21 @@ public class ShipEntity : MonoBehaviour
 
         var dynamicBlock = Instantiate(DynamicBlockPrefab, collider.transform.TransformPoint(position), Quaternion.identity, Blocks);
         dynamicBlock.GetComponent<Rigidbody>().velocity = collision.relativeVelocity;
+    }
+
+    public void MoveForward()
+    {
+        ShipRigidbody.AddRelativeForce(MoveForwardForce, 0, 0, ForceMode.Acceleration);
+    }
+
+    public void TurnRight()
+    {
+        ShipRigidbody.AddRelativeTorque(TurnSwingForce, TurnForce, 0, ForceMode.Acceleration);
+    }
+
+    public void TurnLeft()
+    {
+        ShipRigidbody.AddTorque(0, -TurnForce, 0, ForceMode.Acceleration);
+        ShipRigidbody.AddRelativeTorque(-TurnSwingForce, 0, 0, ForceMode.Acceleration);
     }
 }
