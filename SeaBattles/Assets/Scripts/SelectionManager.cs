@@ -1,10 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 public class SelectionManager : MonoBehaviour
 {
     public Camera Camera;
+    public Transform Ships;
     public GameObject SelectPrefab;
     public Transform Selections;
     public int SelectionThickness;
@@ -49,16 +52,7 @@ public class SelectionManager : MonoBehaviour
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
-                        if (!Input.GetKey(KeyCode.LeftShift))
-                        {
-                            RemoveAllSelections();
-                        }
-
-                        var createdSelection = Instantiate(SelectPrefab, Vector3.zero, Quaternion.identity, Selections);
-                        createdSelection.GetComponent<SelectIndicatorEntity>().Target = hit.collider.transform;
-                        createdSelection.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
-                        selectable.Selected = true;
-
+                        SelectTarget(selectable, hit.collider.transform);
                         HidePreselect();
                     }
                     else
@@ -113,6 +107,25 @@ public class SelectionManager : MonoBehaviour
 
             // Right
             DrawRectangle(rect.position + new Vector2(rect.width - SelectionThickness, 0), new Vector2(SelectionThickness, -rect.height), SelectionBorderColor);
+
+            foreach (Transform ship in Ships)
+            {
+                var selectable = ship.GetComponent<ISelectable>();
+                if (rect.Contains(Camera.WorldToScreenPoint(ship.position)))
+                {
+                    if (!selectable.Selected)
+                    {
+                        SelectTarget(selectable, ship.transform);
+                    }
+                }
+                else
+                {
+                    if (selectable.Selected)
+                    {
+                        UnselectTarget(selectable, ship.transform);
+                    }
+                }
+            }
         }
     }
 
@@ -125,16 +138,24 @@ public class SelectionManager : MonoBehaviour
         GUI.color = Color.white;
     }
 
-    private void ShowPreselect(Transform target)
+    private void SelectTarget(ISelectable selectable, Transform target)
     {
-        _preSelect.SetActive(true);
-        _preSelect.GetComponent<SelectIndicatorEntity>().Target = target;
-        _preSelect.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+        var createdSelection = Instantiate(SelectPrefab, Vector3.zero, Quaternion.identity, Selections);
+        createdSelection.GetComponent<SelectIndicatorEntity>().Target = target;
+        createdSelection.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+        selectable.Selected = true;
     }
 
-    private void HidePreselect()
+    private void UnselectTarget(ISelectable selectable, Transform target)
     {
-        _preSelect.SetActive(false);
+        target.GetComponent<ISelectable>().Selected = false;
+        foreach (Transform selection in Selections)
+        {
+            if (selection.GetComponent<SelectIndicatorEntity>().Target == target)
+            {
+                Destroy(selection.gameObject);
+            }
+        }
     }
 
     private void RemoveAllSelections()
@@ -146,5 +167,17 @@ public class SelectionManager : MonoBehaviour
 
             Destroy(child.gameObject);
         }
+    }
+
+    private void ShowPreselect(Transform target)
+    {
+        _preSelect.SetActive(true);
+        _preSelect.GetComponent<SelectIndicatorEntity>().Target = target;
+        _preSelect.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+    }
+
+    private void HidePreselect()
+    {
+        _preSelect.SetActive(false);
     }
 }
