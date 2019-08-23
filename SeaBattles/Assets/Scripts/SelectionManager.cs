@@ -156,8 +156,12 @@ public class SelectionManager : MonoBehaviour
     private void SelectTarget(ISelectable selectable, Transform target)
     {
         var createdSelection = Instantiate(SelectPrefab, Vector3.zero, Quaternion.identity, Selections);
-        createdSelection.GetComponent<SelectIndicatorEntity>().Target = target;
-        createdSelection.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+
+        var entity = createdSelection.GetComponent<SelectIndicatorEntity>();
+        entity.transform.rotation = _preSelect.transform.rotation;
+        entity.Target = target;
+        entity.ForceUpdatePosition();
+
         selectable.Selected = true;
     }
 
