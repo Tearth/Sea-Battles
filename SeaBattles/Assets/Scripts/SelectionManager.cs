@@ -13,10 +13,12 @@ public class SelectionManager : MonoBehaviour
     public int SelectionThickness;
     public Color SelectionBckgColor;
     public Color SelectionBorderColor;
+    public LayerMask SelectableLayer;
 
-    private GameObject _preSelect;
     private Vector3 _mouseClickPoint;
+    private GameObject _preSelect;
     private Texture2D _texture;
+    private bool _mouseDrag;
 
     // Start is called before the first frame update
     void Start()
@@ -33,42 +35,55 @@ public class SelectionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Don't select anything if cursor is disabled due to moving camera
         if (!Cursor.visible)
         {
             return; 
         }
 
+        var mousePositionDelta = new Vector2(Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"));
+
+        // Save mouse position when clicked left button
         if (Input.GetMouseButtonDown(0))
         {
             _mouseClickPoint = Input.mousePosition;
         }
 
-        if (Physics.Raycast(Camera.ScreenPointToRay(Input.mousePosition), out var hit, float.MaxValue))
+        // Check if mouse has been moved after click, then activate drag mode if possible
+        if (Input.GetMouseButton(0))
+        {
+            if (!_mouseDrag && mousePositionDelta.sqrMagnitude > 0)
+            {
+                _mouseDrag = true;
+            }
+        }
+
+        // Mouse is not in drag mode if left button has been released
+        if (Input.GetMouseButtonUp(0))
+        {
+            _mouseDrag = false;
+        }
+
+        // Check if mouse is pointing on any selectable object
+        if (Physics.Raycast(Camera.ScreenPointToRay(Input.mousePosition), out var hit, float.MaxValue, SelectableLayer.value))
         {
             var selectable = hit.collider.gameObject.GetComponent<ISelectable>();
-            if (selectable != null)
+            if (!selectable.Selected)
             {
-                if (!selectable.Selected)
+                if (Input.GetMouseButtonDown(0))
                 {
-                    if (Input.GetMouseButtonDown(0))
+                    if (!Input.GetKey(KeyCode.LeftShift))
                     {
-                        SelectTarget(selectable, hit.collider.transform);
-                        HidePreselect();
+                        RemoveAllSelections();
                     }
-                    else
-                    {
-                        ShowPreselect(hit.collider.transform);
-                    }
-                }
-            }
-            else
-            {
-                if (!Input.GetKey(KeyCode.LeftShift))
-                {
-                    RemoveAllSelections();
-                }
 
-                HidePreselect();
+                    SelectTarget(selectable, hit.collider.transform);
+                    HidePreselect();
+                }
+                else
+                {
+                    ShowPreselect(hit.collider.transform);
+                }
             }
         }
         else
@@ -84,7 +99,7 @@ public class SelectionManager : MonoBehaviour
 
     void OnGUI()
     {
-        if (Input.GetMouseButton(0))
+        if (_mouseDrag)
         {
             var minX = Mathf.Min(Input.mousePosition.x, _mouseClickPoint.x);
             var maxX = Mathf.Max(Input.mousePosition.x, _mouseClickPoint.x);

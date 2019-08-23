@@ -20,8 +20,27 @@ public class CameraEntity : MonoBehaviour
     public float MinHeight;
     public float MaxHeight;
 
+    private bool _mouseDrag;
+
     void Update()
     {
+        var mousePositionDelta = new Vector2(Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"));
+
+        // Check if mouse has been moved after click, then activate drag mode if possible
+        if (Input.GetMouseButton(1))
+        {
+            if (!_mouseDrag && mousePositionDelta.sqrMagnitude > 0)
+            {
+                _mouseDrag = true;
+            }
+        }
+
+        // Mouse is not in drag mode if left button has been released
+        if (Input.GetMouseButtonUp(1))
+        {
+            _mouseDrag = false;
+        }
+
         var speedMultiplier = 
             Input.GetKey(KeyCode.LeftShift) ? ExtraAcceleration :
             Input.GetKey(KeyCode.LeftControl) ? ExtraReduction :
@@ -56,7 +75,7 @@ public class CameraEntity : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButton(1))
+        if (_mouseDrag)
         {
             Destination.transform.RotateAround(Target.position, new Vector3(0, 1, 0), Input.GetAxis("Mouse X") * RotationSpeed * Time.deltaTime);
 
