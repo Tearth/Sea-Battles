@@ -6,6 +6,7 @@ public class SelectionManager : MonoBehaviour
 {
     public Camera Camera;
     public GameObject SelectPrefab;
+    public Transform Selections;
 
     private GameObject _preSelect;
 
@@ -20,22 +21,79 @@ public class SelectionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!Cursor.visible)
+        {
+            return; 
+        }
+
         if (Physics.Raycast(Camera.ScreenPointToRay(Input.mousePosition), out var hit, float.MaxValue))
         {
             var selectable = hit.collider.gameObject.GetComponent<ISelectable>();
             if (selectable != null)
             {
-                _preSelect.SetActive(true);
-                _preSelect.transform.position = new Vector3(hit.transform.position.x, 2, hit.transform.position.z);
+                if (!selectable.Selected)
+                {
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        if (!Input.GetKey(KeyCode.LeftShift))
+                        {
+                            RemoveAllSelections();
+                        }
+
+                        var createdSelection = Instantiate(SelectPrefab, Vector3.zero, Quaternion.identity, Selections);
+                        createdSelection.GetComponent<SelectIndicatorEntity>().Target = hit.collider.transform;
+                        createdSelection.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+                        selectable.Selected = true;
+
+                        HidePreselect();
+                    }
+                    else
+                    {
+                        ShowPreselect(hit.collider.transform);
+                    }
+                }
             }
             else
             {
-                _preSelect.SetActive(false);
+                if (!Input.GetKey(KeyCode.LeftShift))
+                {
+                    RemoveAllSelections();
+                }
+
+                HidePreselect();
             }
         }
         else
         {
-            _preSelect.SetActive(false);
+            if (Input.GetMouseButtonDown(0) && !Input.GetKey(KeyCode.LeftShift))
+            {
+                RemoveAllSelections();
+            }
+
+            HidePreselect();
+        }
+    }
+
+    private void ShowPreselect(Transform target)
+    {
+        _preSelect.SetActive(true);
+        _preSelect.GetComponent<SelectIndicatorEntity>().Target = target;
+        _preSelect.GetComponent<SelectIndicatorEntity>().ForceUpdatePosition();
+    }
+
+    private void HidePreselect()
+    {
+        _preSelect.SetActive(false);
+    }
+
+    private void RemoveAllSelections()
+    {
+        foreach (Transform child in Selections)
+        {
+            var target = child.GetComponent<SelectIndicatorEntity>().Target;
+            target.GetComponent<ISelectable>().Selected = false;
+
+            Destroy(child.gameObject);
         }
     }
 }

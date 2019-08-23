@@ -8,6 +8,7 @@ public class SelectIndicatorEntity : MonoBehaviour
     public int ElementsCount;
     public float Radius;
     public float RotateSpeed;
+    public Transform Target;
 
     // Start is called before the first frame update
     void Awake()
@@ -26,10 +27,23 @@ public class SelectIndicatorEntity : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        ForceUpdatePosition();
+    }
+
     // Update is called once per frame
     void FixedUpdate()
     {
         transform.eulerAngles += new Vector3(0, RotateSpeed, 0);
+    }
+
+    public void ForceUpdatePosition()
+    {
+        if (Target != null)
+        {
+            transform.position = new Vector3(Target.transform.position.x, 2, Target.transform.position.z);
+        }
     }
 
     public void SetAsPreselect()

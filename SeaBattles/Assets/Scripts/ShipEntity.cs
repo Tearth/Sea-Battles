@@ -91,9 +91,6 @@ public class ShipEntity : MonoBehaviour, ISelectable
             0,
             Mathf.DeltaAngle(transform.eulerAngles.z, 0) * StabilizationForce, 
             ForceMode.Acceleration);
-
-        MoveForward();
-        TurnLeft();
     }
 
     private void CreateShipArrayMap()
