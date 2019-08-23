@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UIElements;
+using Cursor = UnityEngine.Cursor;
 
 public class CameraEntity : MonoBehaviour
 {
@@ -62,6 +64,14 @@ public class CameraEntity : MonoBehaviour
             {
                 Destination.transform.RotateAround(Target.position, Destination.right, -Input.GetAxis("Mouse Y") * RotationSpeed * Time.deltaTime);
             }
+
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
 
         if (Destination.position.y < MinHeight)

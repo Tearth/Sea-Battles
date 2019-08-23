@@ -73,14 +73,14 @@ public class ShipEntity : MonoBehaviour
         var torqueAngle = Mathf.Sin(_wavesSwingAngle);
         var torqueAngleSign = Mathf.Sign(torqueAngle);
 
-        //ShipRigidbody.AddRelativeTorque(WavesForce * torqueAngle + torqueAngleSign * speedForce, 0, 0, ForceMode.Acceleration);
+        ShipRigidbody.AddRelativeTorque(WavesForce * torqueAngle + torqueAngleSign * speedForce, 0, 0, ForceMode.Acceleration);
         _wavesSwingAngle = (_wavesSwingAngle + WavesFrequency) % (2 * Mathf.PI);
 
         // Add swing (frond-back) force due to speed
         var speedAngle = Mathf.Sin(_speedSwingAngle);
         var speedAngleSign = Mathf.Sign(speedAngle);
 
-       // ShipRigidbody.AddRelativeTorque(0, 0, speedAngleSign * torqueAngle * speedForce, ForceMode.Acceleration);
+        ShipRigidbody.AddRelativeTorque(0, 0, speedAngleSign * torqueAngle * speedForce, ForceMode.Acceleration);
         _speedSwingAngle = (_speedSwingAngle + SpeedWavesFrequency) % (2 * Mathf.PI);
 
         // Stabilize ship's swing
@@ -90,7 +90,7 @@ public class ShipEntity : MonoBehaviour
             Mathf.DeltaAngle(transform.eulerAngles.z, 0) * StabilizationForce, 
             ForceMode.Acceleration);
 
-        //MoveForward();
+        MoveForward();
         TurnLeft();
     }
 
