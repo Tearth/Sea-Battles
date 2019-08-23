@@ -6,7 +6,7 @@ using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
-public class ShipEntity : MonoBehaviour
+public class ShipEntity : MonoBehaviour, ISelectable
 {
     public Transform Blocks;
     public Transform Chunks;
@@ -31,6 +31,8 @@ public class ShipEntity : MonoBehaviour
 
     public int CannonsCount;
     public int CrewCount;
+
+    public bool Selected { get; set; }
 
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
@@ -124,6 +126,8 @@ public class ShipEntity : MonoBehaviour
             Destroy(block.GetComponent<MeshFilter>());
             Destroy(block.GetComponent<MeshRenderer>());
         }
+
+        gameObject.AddComponent<MeshCollider>().convex = true;
     }
 
     private void CalculateVariables()
