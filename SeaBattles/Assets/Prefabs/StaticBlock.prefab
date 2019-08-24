@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7574465504345677018}
   - component: {fileID: 7574465504345677019}
   m_Layer: 8
-  m_Name: Block 0
+  m_Name: StaticBlock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -123,4 +123,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShipEntity: {fileID: 0}
-  MinImpulseToDestroy: 0
+  MinImpulseToDestroy: 1000

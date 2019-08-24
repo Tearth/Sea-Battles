@@ -2,6 +2,7 @@
 
 public class BallEntity : MonoBehaviour
 {
+    [Header("General settings")]
     public int MaxDepth;
 
     void Update()
