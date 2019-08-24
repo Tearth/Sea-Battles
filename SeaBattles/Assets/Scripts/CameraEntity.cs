@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
@@ -19,6 +20,7 @@ public class CameraEntity : MonoBehaviour
 
     public float MinHeight;
     public float MaxHeight;
+    public bool DragLock;
 
     private bool _mouseDrag;
 
@@ -75,7 +77,7 @@ public class CameraEntity : MonoBehaviour
             }
         }
 
-        if (_mouseDrag)
+        if (_mouseDrag && !DragLock)
         {
             Destination.transform.RotateAround(Target.position, new Vector3(0, 1, 0), Input.GetAxis("Mouse X") * RotationSpeed * Time.deltaTime);
 

@@ -163,6 +163,7 @@ public class SelectionManager : MonoBehaviour
         entity.ForceUpdatePosition();
 
         selectable.Selected = true;
+        Camera.GetComponent<CameraEntity>().DragLock = true;
     }
 
     private void UnselectTarget(ISelectable selectable, Transform target)
@@ -173,6 +174,7 @@ public class SelectionManager : MonoBehaviour
             if (selection.GetComponent<SelectIndicatorEntity>().Target == target)
             {
                 Destroy(selection.gameObject);
+                break;
             }
         }
     }

@@ -1,18 +1,18 @@
-﻿using System.Net;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BlockEntity : MonoBehaviour
 {
     public ShipEntity ShipEntity;
+    public float MinImpulseToDestroy;
 
     void OnCollisionEnter(Collision collision)
     {
-        var contact = collision.contacts[0];
-        if (contact.otherCollider.gameObject.tag == "DynamicBlock")
+        if (collision.impulse.sqrMagnitude < MinImpulseToDestroy)
         {
             return;
         }
-
+        
+        var contact = collision.contacts[0];
         var boxCollider = (BoxCollider)contact.thisCollider;
         var colPoint = transform.InverseTransformPoint(contact.point);
         var colliderType = boxCollider.size.x > boxCollider.size.z ? ColliderType.ForwardBack : ColliderType.RightLeft;
