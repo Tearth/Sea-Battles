@@ -88,14 +88,9 @@ public class MeshGenerator
 
     private void AddUvForSquare(List<Vector2> uv, int squareNumber)
     {
-        var UvWidthStep = 1;
-        var UvHeightPerType = 1;
-        var MaxTextureTypesCount = 1;
-        var TextureType = 0;
-
-        uv.Add(new Vector2(UvWidthStep * squareNumber, UvHeightPerType * (int)(MaxTextureTypesCount - 1 - TextureType)));
-        uv.Add(new Vector2(UvWidthStep * (squareNumber + 1), UvHeightPerType * (int)(MaxTextureTypesCount - 1 - TextureType)));
-        uv.Add(new Vector2(UvWidthStep * (squareNumber + 1), UvHeightPerType * ((int)(MaxTextureTypesCount - 1 - TextureType) + 1)));
-        uv.Add(new Vector2(UvWidthStep * squareNumber, UvHeightPerType * ((int)(MaxTextureTypesCount - 1 - TextureType) + 1)));
+        uv.Add(new Vector2(squareNumber, 0));
+        uv.Add(new Vector2(squareNumber + 1, 0));
+        uv.Add(new Vector2(squareNumber + 1, 1));
+        uv.Add(new Vector2(squareNumber, 1));
     }
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Quaternion = UnityEngine.Quaternion;
 
 public class ShipEditorTools : MonoBehaviour
 {
@@ -11,7 +10,6 @@ public class ShipEditorTools : MonoBehaviour
 
     public void RemoveDuplicates()
     {
-        var removedDuplicates = 0;
         var groups = GetAllElements().GroupBy(p => p.transform.position);
 
         foreach (var group in groups)
@@ -21,8 +19,6 @@ public class ShipEditorTools : MonoBehaviour
             {
                 DestroyImmediate(blocks[1]);
                 blocks.RemoveAt(1);
-
-                removedDuplicates++;
             }
         }
     }
@@ -68,13 +64,11 @@ public class ShipEditorTools : MonoBehaviour
     public void RemoveMirror()
     {
         var children = GetAllElements();
-        var removedBlocks = 0;
         var blocksToRemove = children.Where(p => p.transform.position.z < 0).ToList();
 
         foreach (var block in blocksToRemove)
         {
             DestroyImmediate(block);
-            removedBlocks++;
         }
 
         RemoveDuplicates();

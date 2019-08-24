@@ -1,39 +1,32 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CannonEntity : MonoBehaviour
 {
-    public Transform BallPoint;
+    [Header("Prefabs")]
     public GameObject BallPrefab;
+
+    [Header("Components")]
     public Rigidbody CannonRigidbody;
+
+    [Header("General settings")]
+    public Transform BallPoint;
+    public Transform Crew;
     public float InitialSpeed;
     public float MinImpulseToDestroy;
     public int CrewCount;
     public bool Destroyed;
 
-    public List<CrewEntity> CrewList;
-
-    void Start()
-    {
-        
-    }
-
-    void Update()
-    {
-        
-    }
-
     void OnCollisionEnter(Collision collision)
     {
-        if (!Destroyed && collision.impulse.sqrMagnitude > MinImpulseToDestroy)
+        if (!Destroyed && collision.impulse.sqrMagnitude >= MinImpulseToDestroy)
         {
             CannonRigidbody.isKinematic = false;
             CannonRigidbody.AddForce(-collision.impulse);
 
-            foreach (var crew in CrewList)
+            foreach (Transform crew in Crew)
             {
-                crew.Kill();
+                crew.GetComponent<CrewEntity>().Kill();
             }
 
             Destroyed = true;
