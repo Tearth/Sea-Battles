@@ -19,6 +19,7 @@ public class SelectionManager : MonoBehaviour
     private GameObject _preSelect;
     private Texture2D _texture;
     private bool _mouseDrag;
+    private int _selectedItemsCount;
 
     // Start is called before the first frame update
     void Start()
@@ -164,6 +165,8 @@ public class SelectionManager : MonoBehaviour
 
         selectable.Selected = true;
         Camera.GetComponent<CameraEntity>().DragLock = true;
+
+        _selectedItemsCount++;
     }
 
     private void UnselectTarget(ISelectable selectable, Transform target)
@@ -174,8 +177,15 @@ public class SelectionManager : MonoBehaviour
             if (selection.GetComponent<SelectIndicatorEntity>().Target == target)
             {
                 Destroy(selection.gameObject);
+
+                _selectedItemsCount--;
                 break;
             }
+        }
+
+        if (_selectedItemsCount <= 0)
+        {
+            Camera.GetComponent<CameraEntity>().DragLock = false;
         }
     }
 
@@ -188,6 +198,9 @@ public class SelectionManager : MonoBehaviour
 
             Destroy(child.gameObject);
         }
+
+        _selectedItemsCount = 0;
+        Camera.GetComponent<CameraEntity>().DragLock = false;
     }
 
     private void ShowPreselect(Transform target)

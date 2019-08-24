@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 
@@ -47,7 +48,11 @@ public class ShipEditorTools : MonoBehaviour
 
             foreach (Transform child in mirrorableItem.Transform)
             {
-                Instantiate(child.gameObject, Vector3.Scale(child.position, new Vector3(1, 1, -1)), Quaternion.identity, mirrorableItem.Transform);
+                var prefab = PrefabUtility.GetCorrespondingObjectFromSource(child.gameObject);
+
+                var createdGameObject = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                createdGameObject.transform.position = Vector3.Scale(child.position, new Vector3(1, 1, -1));
+                createdGameObject.transform.parent = mirrorableItem.Transform;
 
                 if (copiedBlocks++ >= blocksToCopy)
                 {
