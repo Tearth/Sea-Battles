@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -60,6 +61,7 @@ public class ShipEditorTools : MonoBehaviour
         }
 
         RemoveDuplicates();
+        ReorderBlocks();
         BeautifyNames();
     }
 
@@ -74,7 +76,6 @@ public class ShipEditorTools : MonoBehaviour
         }
 
         RemoveDuplicates();
-        BeautifyNames();
     }
 
     public void ApplyScale()
@@ -90,6 +91,49 @@ public class ShipEditorTools : MonoBehaviour
                 child.localPosition = Vector3.Scale(child.localPosition, scaleVector);
             }
         }
+    }
+
+    public void ReorderBlocks()
+    {
+        var changed = true;
+        var reorderedBlocks = 0;
+
+        while (changed)
+        {
+            var all = new List<GameObject>();
+            foreach (Transform child in MirrorableItems.First().Transform)
+            {
+                all.Add(child.gameObject);
+            }
+
+            all = all.OrderBy(p => p.transform.GetSiblingIndex()).ToList();
+
+            changed = false;
+            for (var i = 0; i < all.Count - 1; i++)
+            {
+                var first = all[i];
+                var second = all[i + 1];
+
+                if ((first.transform.position.x > second.transform.position.x) ||
+                    (Math.Abs(first.transform.position.x - second.transform.position.x) < 0.001f && 
+                     first.transform.position.y > second.transform.position.y) ||
+                    (Math.Abs(first.transform.position.x - second.transform.position.x) < 0.001f && 
+                     Math.Abs(first.transform.position.y - second.transform.position.y) < 0.001f && 
+                     first.transform.position.z > second.transform.position.z))
+                {
+                    var firstIndex = first.transform.GetSiblingIndex();
+                    var secondIndex = second.transform.GetSiblingIndex();
+
+                    first.transform.SetSiblingIndex(secondIndex);
+                    second.transform.SetSiblingIndex(firstIndex);
+
+                    changed = true;
+                    reorderedBlocks++;
+                }
+            }
+        }
+
+        Debug.Log($"Reordered {reorderedBlocks} blocks");
     }
 
     private List<GameObject> GetAllElements()

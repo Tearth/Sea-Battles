@@ -34,6 +34,11 @@ public class ShipEditor : Editor
         {
             script.ApplyScale();
         }
+
+        if (GUILayout.Button("Reorder blocks"))
+        {
+            script.ReorderBlocks();
+        }
     }
 }
 #endif
