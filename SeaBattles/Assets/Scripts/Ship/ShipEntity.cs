@@ -42,7 +42,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
     void Start()
     {
         (_shipSize, _shipCorner) = GetShipSizeAndCorner();
-        _chunks = new CombineInstance[_shipSize.x / ChunkWidth];
+        _chunks = new CombineInstance[Mathf.CeilToInt((float)_shipSize.x / ChunkWidth)];
 
         CreateShipArrayMap();
         RegenerateShipMesh();
@@ -104,7 +104,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
     private void RegenerateShipMesh()
     {
-        for (var x = 0; x < _shipSize.x / ChunkWidth; x++)
+        for (var x = 0; x < _chunks.Length; x++)
         {
             RegenerateChunk(x);
         }
@@ -154,7 +154,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
         var uv = new List<Vector2>();
         var squareCount = 0;
 
-        for (var chunkX = x * ChunkWidth; chunkX <= x * ChunkWidth + ChunkWidth; chunkX++)
+        for (var chunkX = x * ChunkWidth; chunkX < Mathf.Min(_shipSize.x, x * ChunkWidth + ChunkWidth); chunkX++)
         {
             for (var y = 0; y < _shipSize.y; y++)
             {
@@ -309,7 +309,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
                 }
             }
         }
-        Debug.Log(saved);
+
         _chunks[x].mesh.Clear();
         _chunks[x].mesh.vertices = vertices.ToArray();
         _chunks[x].mesh.triangles = triangles.ToArray();
