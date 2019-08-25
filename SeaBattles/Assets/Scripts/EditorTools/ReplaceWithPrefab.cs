@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using UnityEditor;
 
 public class ReplaceWithPrefab : ScriptableWizard
@@ -14,7 +15,7 @@ public class ReplaceWithPrefab : ScriptableWizard
 
     void OnWizardCreate()
     {
-        foreach (GameObject gameObject in OldObjects)
+        foreach (var gameObject in OldObjects)
         {
             var newObject = (GameObject)PrefabUtility.InstantiatePrefab(NewType);
             newObject.transform.position = gameObject.transform.position;
@@ -22,7 +23,7 @@ public class ReplaceWithPrefab : ScriptableWizard
             newObject.transform.parent = gameObject.transform.parent;
 
             DestroyImmediate(gameObject);
-
         }
     }
 }
+#endif

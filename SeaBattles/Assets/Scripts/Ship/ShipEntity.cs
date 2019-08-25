@@ -339,18 +339,19 @@ public class ShipEntity : MonoBehaviour, ISelectable
         var locPoint = transform.InverseTransformPoint(position);
 
         var voxelArrayCoords = GetArrayCoordsOfBlock(locPoint);
-        var targetX = voxelArrayCoords.x - (voxelArrayCoords.x % ChunkWidth);
+        var voxelXInChunk = voxelArrayCoords.x % ChunkWidth;
+        var targetX = voxelArrayCoords.x - voxelXInChunk;
 
         _shipMap[voxelArrayCoords.x, voxelArrayCoords.y, voxelArrayCoords.z] = false;
 
-        if (targetX > ChunkWidth - 1)
+        if (voxelXInChunk == 0 && targetX > ChunkWidth - 1)
         {
             RegenerateChunk(targetX - ChunkWidth);
         }
 
         RegenerateChunk(targetX);
 
-        if (targetX < _shipSize.x - ChunkWidth)
+        if (voxelXInChunk == ChunkWidth - 1 && targetX < _shipSize.x - ChunkWidth)
         {
             RegenerateChunk(targetX + ChunkWidth);
         }

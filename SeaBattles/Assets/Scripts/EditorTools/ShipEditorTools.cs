@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 public class ShipEditorTools : MonoBehaviour
 {
     public List<MirrorableItem> MirrorableItems;
     public float ScaleToApply;
-
+#if UNITY_EDITOR
     public void RemoveDuplicates()
     {
         var groups = GetAllElements().GroupBy(p => p.transform.position);
@@ -103,4 +105,5 @@ public class ShipEditorTools : MonoBehaviour
 
         return children;
     }
+#endif
 }
