@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
@@ -9,11 +8,9 @@ using Vector3 = UnityEngine.Vector3;
 public class ShipEntity : MonoBehaviour, ISelectable
 {
     public Transform Blocks;
-    public Transform Chunks;
     public Transform Cannons;
     public Transform Keel;
     public Rigidbody ShipRigidbody;
-    public GameObject ChunkPrefab;
     public GameObject DynamicBlockPrefab;
     public LayerMask StaticBlocksLayer;
     public int ChunkWidth;
@@ -37,6 +34,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
     private Vector3Int _shipSize;
     private Vector3 _shipCorner;
     private bool[,,] _shipMap;
+    private CombineInstance[] _chunks;
 
     private float _wavesSwingAngle;
     private float _speedSwingAngle;
@@ -44,6 +42,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
     void Start()
     {
         (_shipSize, _shipCorner) = GetShipSizeAndCorner();
+        _chunks = new CombineInstance[_shipSize.x / ChunkWidth];
 
         CreateShipArrayMap();
         RegenerateShipMesh();
@@ -105,7 +104,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
     private void RegenerateShipMesh()
     {
-        for (var x = 0; x < _shipSize.x; x += ChunkWidth)
+        for (var x = 0; x < _shipSize.x / ChunkWidth; x++)
         {
             RegenerateChunk(x);
         }
@@ -124,7 +123,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
             Destroy(block.GetComponent<MeshRenderer>());
         }
 
-        gameObject.AddComponent<MeshCollider>().convex = true;
+        CombineMeshes();
     }
 
     private void CalculateVariables()
@@ -143,21 +142,19 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
     private void RegenerateChunk(int x)
     {
-        var chunk = Chunks.Find($"Chunk {x}")?.gameObject;
-        if (chunk == null)
+        if (_chunks[x].mesh == null)
         {
-            chunk = Instantiate(ChunkPrefab, Vector3.zero, Quaternion.identity, Chunks);
-            chunk.name = $"Chunk {x}";
+            _chunks[x].mesh = new Mesh();
+            _chunks[x].transform = UnityEngine.Matrix4x4.TRS(-transform.position, Quaternion.identity, Vector3.one);
         }
 
-        var meshFilter = chunk.GetComponent<MeshFilter>();
         var generator = new MeshGenerator(VoxelSize);
         var vertices = new List<Vector3>();
         var triangles = new List<int>();
         var uv = new List<Vector2>();
         var squareCount = 0;
         
-        for (var chunkX = x; chunkX < x + ChunkWidth; chunkX++)
+        for (var chunkX = x * ChunkWidth; chunkX < x * ChunkWidth + ChunkWidth; chunkX++)
         {
             if (chunkX >= _shipSize.x)
             {
@@ -215,11 +212,17 @@ public class ShipEntity : MonoBehaviour, ISelectable
             }
         }
 
-        meshFilter.mesh.Clear();
-        meshFilter.mesh.vertices = vertices.ToArray();
-        meshFilter.mesh.triangles = triangles.ToArray();
-        meshFilter.mesh.uv = uv.ToArray();
-        meshFilter.mesh.RecalculateNormals();
+        _chunks[x].mesh.Clear();
+        _chunks[x].mesh.vertices = vertices.ToArray();
+        _chunks[x].mesh.triangles = triangles.ToArray();
+        _chunks[x].mesh.uv = uv.ToArray();
+        _chunks[x].mesh.RecalculateNormals();
+    }
+
+    private void CombineMeshes()
+    {
+        GetComponent<MeshFilter>().mesh.CombineMeshes(_chunks);
+        GetComponent<MeshFilter>().mesh.Optimize();
     }
 
     private void SimplifyColliders()
@@ -346,15 +349,17 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
         if (voxelXInChunk == 0 && targetX > ChunkWidth - 1)
         {
-            RegenerateChunk(targetX - ChunkWidth);
+            RegenerateChunk(targetX - 1);
         }
 
         RegenerateChunk(targetX);
 
         if (voxelXInChunk == ChunkWidth - 1 && targetX < _shipSize.x - ChunkWidth)
         {
-            RegenerateChunk(targetX + ChunkWidth);
+            RegenerateChunk(targetX + 1);
         }
+
+        CombineMeshes();
     }
 
     public void MoveForward()
