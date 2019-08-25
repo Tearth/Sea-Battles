@@ -153,16 +153,138 @@ public class ShipEntity : MonoBehaviour, ISelectable
         var triangles = new List<int>();
         var uv = new List<Vector2>();
         var squareCount = 0;
-        
-        for (var chunkX = x * ChunkWidth; chunkX < x * ChunkWidth + ChunkWidth; chunkX++)
-        {
-            if (chunkX >= _shipSize.x)
-            {
-                break;
-            }
 
+        for (var chunkX = x * ChunkWidth; chunkX <= x * ChunkWidth + ChunkWidth; chunkX++)
+        {
             for (var y = 0; y < _shipSize.y; y++)
             {
+                /////////////////////////////////////////////////////////////
+                // Top face
+                /////////////////////////////////////////////////////////////
+                for (var z = 0; z < _shipSize.z; z++)
+                {
+                    var blocksCount = 0;
+                    for (var existingBlockIndex = z; existingBlockIndex < _shipSize.z; existingBlockIndex++)
+                    {
+                        if (_shipMap[chunkX, y, existingBlockIndex] &&
+                            (y == _shipSize.y - 1 || !_shipMap[chunkX, y + 1, existingBlockIndex]))
+                        {
+                            blocksCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+
+                    if (blocksCount > 0)
+                    {
+                        var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
+                        var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
+
+                        generator.GenerateTopFace(blocksCount, centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+
+                        z += blocksCount - 1;
+                    }
+                }
+
+                /////////////////////////////////////////////////////////////
+                // Bottom face
+                /////////////////////////////////////////////////////////////
+                for (var z = 0; z < _shipSize.z; z++)
+                {
+                    var blocksCount = 0;
+                    for (var existingBlockIndex = z; existingBlockIndex < _shipSize.z; existingBlockIndex++)
+                    {
+                        if (_shipMap[chunkX, y, existingBlockIndex] && (y == 0 || !_shipMap[chunkX, y - 1, existingBlockIndex]))
+                        {
+                            blocksCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+
+                    if (blocksCount > 0)
+                    {
+                        var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
+                        var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
+
+                        generator.GenerateBottomFace(blocksCount, centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+
+                        z += blocksCount - 1;
+                    }
+                }
+
+                /////////////////////////////////////////////////////////////
+                // Right face
+                /////////////////////////////////////////////////////////////
+                for (var z = 0; z < _shipSize.z; z++)
+                {
+                    var blocksCount = 0;
+
+                    for (var existingBlockIndex = z; existingBlockIndex < _shipSize.z; existingBlockIndex++)
+                    {
+                        if (_shipMap[chunkX, y, existingBlockIndex] &&
+                            (chunkX == _shipSize.x - 1 || !_shipMap[chunkX + 1, y, existingBlockIndex]))
+                        {
+                            blocksCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+
+                    if (blocksCount > 0)
+                    {
+                        var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
+                        var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
+
+                        generator.GenerateRightFace(blocksCount, centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+
+                        z += blocksCount - 1;
+                    }
+                }
+
+                /////////////////////////////////////////////////////////////
+                // Left face
+                /////////////////////////////////////////////////////////////
+                for (var z = 0; z < _shipSize.z; z++)
+                {
+                    var blocksCount = 0;
+                    for (var existingBlockIndex = z; existingBlockIndex < _shipSize.z; existingBlockIndex++)
+                    {
+                        if (_shipMap[chunkX, y, existingBlockIndex] && (chunkX == 0 || !_shipMap[chunkX - 1, y, existingBlockIndex]))
+                        {
+                            blocksCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+
+                    if (blocksCount > 0)
+                    {
+                        var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
+                        var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
+
+                        generator.GenerateLeftFace(blocksCount, centerOffset, vertices, triangles, uv, squareCount);
+                        squareCount++;
+
+                        z += blocksCount - 1;
+                    }
+                }
+
                 for (var z = 0; z < _shipSize.z; z++)
                 {
                     if (!_shipMap[chunkX, y, z])
@@ -172,30 +294,6 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
                     var realCoords = GetRealBlockPositionByArray(new Vector3Int(chunkX, y, z));
                     var centerOffset = realCoords - new Vector3(VoxelSize, VoxelSize, VoxelSize) / 2;
-
-                    if (y == _shipSize.y - 1 || !_shipMap[chunkX, y + 1, z])
-                    {
-                        generator.GenerateTopFace(centerOffset, vertices, triangles, uv, squareCount);
-                        squareCount++;
-                    }
-
-                    if (y == 0 || !_shipMap[chunkX, y - 1, z])
-                    {
-                        generator.GenerateBottomFace(centerOffset, vertices, triangles, uv, squareCount);
-                        squareCount++;
-                    }
-
-                    if (chunkX == _shipSize.x - 1 || !_shipMap[chunkX + 1, y, z])
-                    {
-                        generator.GenerateRightFace(centerOffset, vertices, triangles, uv, squareCount);
-                        squareCount++;
-                    }
-
-                    if (chunkX == 0 || !_shipMap[chunkX - 1, y, z])
-                    {
-                        generator.GenerateLeftFace(centerOffset, vertices, triangles, uv, squareCount);
-                        squareCount++;
-                    }
 
                     if (z == _shipSize.z - 1 || !_shipMap[chunkX, y, z + 1])
                     {
@@ -211,7 +309,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
                 }
             }
         }
-
+        Debug.Log(saved);
         _chunks[x].mesh.Clear();
         _chunks[x].mesh.vertices = vertices.ToArray();
         _chunks[x].mesh.triangles = triangles.ToArray();

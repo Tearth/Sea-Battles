@@ -10,23 +10,23 @@ public class MeshGenerator
         _size = size;
     }
 
-    public void GenerateTopFace(Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
+    public void GenerateTopFace(float length, Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
     {
         vertices.Add(new Vector3(position.x, position.y + _size, position.z));
         vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z));
-        vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z + _size));
-        vertices.Add(new Vector3(position.x, position.y + _size, position.z + _size));
+        vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z + length));
+        vertices.Add(new Vector3(position.x, position.y + _size, position.z + length));
 
         AddUvForSquare(uv, 0);
         AddTrianglesForSquare(triangles, squareNumber);
     }
 
-    public void GenerateBottomFace(Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
+    public void GenerateBottomFace(float length, Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
     {
         vertices.Add(new Vector3(position.x + _size, position.y, position.z));
         vertices.Add(new Vector3(position.x, position.y, position.z));
-        vertices.Add(new Vector3(position.x, position.y, position.z + _size));
-        vertices.Add(new Vector3(position.x + _size, position.y, position.z + _size));
+        vertices.Add(new Vector3(position.x, position.y, position.z + length));
+        vertices.Add(new Vector3(position.x + _size, position.y, position.z + length));
 
         AddUvForSquare(uv, 1);
         AddTrianglesForSquare(triangles, squareNumber);
@@ -54,23 +54,23 @@ public class MeshGenerator
         AddTrianglesForSquare(triangles, squareNumber);
     }
 
-    public void GenerateRightFace(Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
+    public void GenerateRightFace(float length, Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
     {
         vertices.Add(new Vector3(position.x + _size, position.y, position.z));
-        vertices.Add(new Vector3(position.x + _size, position.y, position.z + _size));
-        vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z + _size));
+        vertices.Add(new Vector3(position.x + _size, position.y, position.z + length));
+        vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z + length));
         vertices.Add(new Vector3(position.x + _size, position.y + _size, position.z));
 
         AddUvForSquare(uv, 4);
         AddTrianglesForSquare(triangles, squareNumber);
     }
 
-    public void GenerateLeftFace(Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
+    public void GenerateLeftFace(float length, Vector3 position, List<Vector3> vertices, List<int> triangles, List<Vector2> uv, int squareNumber)
     {
-        vertices.Add(new Vector3(position.x, position.y, position.z + _size));
+        vertices.Add(new Vector3(position.x, position.y, position.z + length));
         vertices.Add(new Vector3(position.x, position.y, position.z));
         vertices.Add(new Vector3(position.x, position.y + _size, position.z));
-        vertices.Add(new Vector3(position.x, position.y + _size, position.z + _size));
+        vertices.Add(new Vector3(position.x, position.y + _size, position.z + length));
 
         AddUvForSquare(uv, 5);
         AddTrianglesForSquare(triangles, squareNumber);
