@@ -56,7 +56,7 @@ public class SelectIndicatorEntity : MonoBehaviour
     {
         foreach (Transform child in transform)
         {
-     //       child.GetComponent<MeshRenderer>().material.color = new Color(1.0f, 1.0f, 1.0f, value);
+            child.GetComponent<MeshRenderer>().material.color = new Color(1.0f, 1.0f, 1.0f, value);
         }
     }
 }
