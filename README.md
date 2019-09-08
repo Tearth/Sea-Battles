@@ -17,3 +17,7 @@ Destroyed side of the ship.
 ![Example4](https://i.imgur.com/oRbILdh.png)
 
 Even more destroyed ship.
+
+![Example5](https://raw.githubusercontent.com/Tearth/SeaBattles/master/shipgif.gif)
+
+Example of destroying ship.
