@@ -13,6 +13,7 @@ public class CameraEntity : MonoBehaviour
     public float MoveLerpSpeed;
     public float RotationLerpSpeed;
     public float ZoomSpeed;
+    public GameObject BallPrefab;
 
     [Header("Speed modifiers")]
     public float ExtraAcceleration;
@@ -83,6 +84,11 @@ public class CameraEntity : MonoBehaviour
             Target.position += Vector3.Scale(Destination.right, new Vector3(1, 0, 1)) * MoveSpeed * speedMultiplier * Time.deltaTime;
         }
 
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            ShootBall();
+        }
+
         if (Math.Abs(Input.mouseScrollDelta.y) > 0.001f)
         {
             var deltaSign = (int)Mathf.Sign(Input.mouseScrollDelta.y);
@@ -127,5 +133,15 @@ public class CameraEntity : MonoBehaviour
         Destination.LookAt(Target);
         transform.position = Vector3.Lerp(transform.position, Destination.position, MoveLerpSpeed * Time.deltaTime);
         transform.rotation = Quaternion.Lerp(transform.rotation, Destination.rotation, RotationLerpSpeed * Time.deltaTime);
+    }
+
+    private void ShootBall()
+    {
+        var position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
+        var ball = Instantiate(BallPrefab, transform.position, Quaternion.identity);
+        var ballDir = Camera.main.ScreenToWorldPoint(position);
+
+        ball.transform.LookAt(ballDir);
+        ball.GetComponent<Rigidbody>().AddForce(ball.transform.forward * 1000, ForceMode.Acceleration);
     }
 }

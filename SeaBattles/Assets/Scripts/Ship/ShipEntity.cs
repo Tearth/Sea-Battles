@@ -441,7 +441,7 @@ public class ShipEntity : MonoBehaviour, ISelectable
 
         var voxelArrayCoords = GetArrayCoordsOfBlock(locPoint);
         var voxelXInChunk = voxelArrayCoords.x % ChunkWidth;
-        var targetX = voxelArrayCoords.x - voxelXInChunk;
+        var targetX = (voxelArrayCoords.x - voxelXInChunk) / ChunkWidth;
 
         _shipMap[voxelArrayCoords.x, voxelArrayCoords.y, voxelArrayCoords.z] = false;
 
